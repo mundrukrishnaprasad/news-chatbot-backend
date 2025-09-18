@@ -1,33 +1,22 @@
-import Redis from "ioredis";
-import { config } from "./config.js";
+let client;
 
-const redis = new Redis(config.REDIS_URL);
-
-// Sessions will expire automatically after 1 hour
-const SESSION_TTL = 3600; // seconds
-
-// Create a new session (empty chat history)
-export async function createSession(sessionId) {
-  await redis.set(`session:${sessionId}`, JSON.stringify([]), "EX", SESSION_TTL);
+export function initSessionStore(redisClient) {
+  client = redisClient;
 }
 
-// Reset a session (clear its history)
-export async function resetSession(sessionId) {
-  await redis.del(`session:${sessionId}`);
+export async function addMessage(sessionId, role, message) {
+  await client.rPush(`session:${sessionId}`, JSON.stringify({ role, message }));
 }
 
-// Add a message to session history
-export async function addMessage(sessionId, sender, text) {
-  const key = `session:${sessionId}`;
-  let history = await redis.get(key);
-  history = history ? JSON.parse(history) : [];
-  history.push({ sender, text });
-  await redis.set(key, JSON.stringify(history), "EX", SESSION_TTL); // refresh TTL
-}
-
-// Get chat history
 export async function getHistory(sessionId) {
-  const key = `session:${sessionId}`;
-  const history = await redis.get(key);
-  return history ? JSON.parse(history) : [];
+  const messages = await client.lRange(`session:${sessionId}`, 0, -1);
+  return messages.map((msg) => JSON.parse(msg));
+}
+
+export async function createSession(sessionId) {
+  await client.del(`session:${sessionId}`);
+}
+
+export async function resetSession(sessionId) {
+  await client.del(`session:${sessionId}`);
 }

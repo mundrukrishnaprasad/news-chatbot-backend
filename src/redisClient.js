@@ -1,9 +1,25 @@
-import Redis from "ioredis";
-import { config } from "./config.js";
+// src/redisClient.js
+import { createClient } from "redis";
+import dotenv from "dotenv";
 
-const redis = new Redis(config.REDIS_URL);
+dotenv.config();
 
-redis.on("connect", () => console.log("✅ Connected to Redis"));
-redis.on("error", (err) => console.error("❌ Redis error", err));
+const client = createClient({
+  url: process.env.REDIS_URL,
+});
 
-export default redis;
+client.on("error", (err) => {
+  console.error("❌ Redis Client Error", err);
+});
+
+client.on("connect", () => {
+  console.log("✅ Connecting to Redis Cloud...");
+});
+
+client.on("ready", () => {
+  console.log("🚀 Redis Client connected & ready");
+});
+
+await client.connect();
+
+export default client;
