@@ -4,13 +4,7 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 import { pipeline } from "@xenova/transformers";
 import { config } from "./config.js";
 
-// ✅ Qdrant client with optional API key
-const qdrantOptions = { url: config.QDRANT_URL };
-if (config.QDRANT_API_KEY) {
-  qdrantOptions.apiKey = config.QDRANT_API_KEY;
-}
-const qdrant = new QdrantClient(qdrantOptions);
-
+const qdrant = new QdrantClient({ url: config.QDRANT_URL });
 const parser = new Parser();
 
 // Load local embedding model
@@ -26,7 +20,7 @@ async function fetchArticles() {
   }));
 }
 
-// ✅ Split long text into chunks
+
 function chunkText(text, maxWords = 50) {
   const words = text.split(" ");
   let chunks = [];
@@ -36,15 +30,15 @@ function chunkText(text, maxWords = 50) {
   return chunks;
 }
 
-// ✅ Ingest into Qdrant
+
 async function ingest() {
   console.log("🚀 Fetching news articles...");
   const articles = await fetchArticles();
 
-  // Create collection if not exists
+
   await qdrant.createCollection("news", {
-    vectors: { size: 384, distance: "Cosine" }
-  }).catch(() => console.log("ℹ️ Collection already exists"));
+    vectors: { size: 384, distance: "Cosine" } 
+  }).catch(() => console.log("Collection already exists"));
 
   let points = [];
   let idCounter = 1;
@@ -68,7 +62,7 @@ async function ingest() {
   }
 
   await qdrant.upsert("news", { points });
-  console.log(`✅ Ingested ${points.length} chunks into Qdrant!`);
+  console.log(` Ingested ${points.length} chunks into Qdrant!`);
 }
 
-ingest().catch(err => console.error("❌ Ingest error:", err));
+ingest().catch(err => console.error(err));

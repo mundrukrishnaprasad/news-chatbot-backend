@@ -1,14 +1,10 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { pipeline } from "@xenova/transformers";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { config } from "./config.js";   // central config
+import { config } from "./config.js";   // ✅ use central config
 
-// Qdrant client (support API key if provided)
-const qdrantOptions = { url: config.QDRANT_URL };
-if (config.QDRANT_API_KEY) {
-  qdrantOptions.apiKey = config.QDRANT_API_KEY;
-}
-const qdrant = new QdrantClient(qdrantOptions);
+// Qdrant client
+const qdrant = new QdrantClient({ url: config.QDRANT_URL });
 
 // Gemini client
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);

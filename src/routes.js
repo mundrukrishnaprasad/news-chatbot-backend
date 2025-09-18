@@ -32,10 +32,10 @@ router.post("/session/:id/message", async (req, res) => {
   try {
     const reply = await chatWithNews(req.params.id, message);
 
-    // Save user message and bot reply to Redis history (Redis v4)
+    // Save user message and bot reply to Redis history
     const historyKey = `session:${req.params.id}:history`;
-    await redis.rPush(historyKey, JSON.stringify({ sender: "user", text: message }));
-    await redis.rPush(historyKey, JSON.stringify({ sender: "bot", text: reply }));
+    await redis.rpush(historyKey, JSON.stringify({ sender: "user", text: message }));
+    await redis.rpush(historyKey, JSON.stringify({ sender: "bot", text: reply }));
 
     res.json({ reply });
   } catch (err) {
@@ -47,7 +47,7 @@ router.post("/session/:id/message", async (req, res) => {
 // ✅ Fetch full chat history
 router.get("/session/:id/history", async (req, res) => {
   const historyKey = `session:${req.params.id}:history`;
-  const messages = await redis.lRange(historyKey, 0, -1); // Redis v4 method
+  const messages = await redis.lrange(historyKey, 0, -1);
   const parsed = messages.map(m => JSON.parse(m));
   res.json(parsed);
 });
